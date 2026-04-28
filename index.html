@@ -25,7 +25,8 @@
       place-items: center;
       background: radial-gradient(circle at top, var(--bg2), var(--bg1));
       font-family: system-ui, sans-serif;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       padding: 16px;
     }
 
@@ -90,12 +91,15 @@
       border: none;
       cursor: pointer;
       box-shadow: 0 10px 24px rgba(0,0,0,.14);
+      transition: transform 0.18s ease, background 0.15s ease, opacity 0.2s ease;
+      white-space: nowrap;
     }
 
     #yesBtn {
       left: 18%;
       background: var(--yes);
       color: #fff;
+      z-index: 2;
     }
 
     #yesBtn:hover { background: var(--yesHover); }
@@ -103,6 +107,8 @@
     #noBtn {
       left: 62%;
       background: #e5e7eb;
+      color: #111827;
+      z-index: 1;
     }
 
     .hint {
@@ -118,12 +124,16 @@
     }
 
     .result h2 {
-      font-size: clamp(18px, 2.5vw, 28px);
+      font-size: 20px;
+      opacity: 0.8;
+      letter-spacing: 1px;
       margin: 10px 0;
     }
 
     .fireworks {
       width: min(420px, 95vw);
+      max-height: 55vh;
+      object-fit: contain;
       border-radius: 16px;
       margin: 0 auto;
       display: block;
@@ -138,6 +148,37 @@
       to {
         transform: scale(1);
         opacity: 1;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 22px 16px;
+      }
+
+      .art {
+        width: min(220px, 80vw);
+      }
+
+      .button-zone {
+        height: 125px;
+      }
+
+      button {
+        padding: 14px 18px;
+        font-size: 15px;
+      }
+
+      #yesBtn {
+        left: 10%;
+      }
+
+      #noBtn {
+        left: 58%;
+      }
+
+      .fireworks {
+        max-height: 50vh;
       }
     }
   </style>
@@ -210,55 +251,62 @@ function fullScreenConfetti() {
 
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
+
+  setTimeout(() => {
+    confettiInstance({
+      particleCount: 250,
+      spread: 140,
+      startVelocity: 55,
+      origin: { x: 0.5, y: 0.55 }
+    });
+  }, 300);
 }
 
 let yesScale = 1;
+let noScale = 1;
+let clickCount = 0;
+
+const noMessages = [
+  "Are you sure??",
+  "Are you REALLY sure??",
+  "Think again...",
+  "You might regret this 😳",
+  "Last chance...",
+  "Ok I give up...",
+  "Just kidding! 😂",
+  "Cmonnn press yes 😭",
+  "Be nice 💔",
+  "You know you want to 😈"
+];
 
 function growYes() {
-  yesScale = Math.min(2.2, yesScale + 0.1);
+  yesScale = Math.min(2.4, yesScale + 0.12);
   yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
 }
 
-function clamp(n, min, max) {
-  return Math.max(min, Math.min(max, n));
+function shrinkNo() {
+  noScale = Math.max(0.25, noScale - 0.1);
+  noBtn.style.transform = `translateY(-50%) scale(${noScale})`;
 }
 
-function moveNo(px, py) {
-  const z = zone.getBoundingClientRect();
-  const b = noBtn.getBoundingClientRect();
+noBtn.addEventListener("click", e => {
+  e.preventDefault();
 
-  let dx = (b.left + b.width / 2) - px;
-  let dy = (b.top + b.height / 2) - py;
-  let mag = Math.hypot(dx, dy) || 1;
+  noBtn.textContent = noMessages[clickCount % noMessages.length];
+  clickCount++;
 
-  dx /= mag;
-  dy /= mag;
-
-  let newLeft = (b.left - z.left) + dx * 150;
-  let newTop  = (b.top - z.top) + dy * 150;
-
-  newLeft = clamp(newLeft, 0, z.width - b.width);
-  newTop  = clamp(newTop, 0, z.height - b.height);
-
-  noBtn.style.left = newLeft + "px";
-  noBtn.style.top = newTop + "px";
-  noBtn.style.transform = "none";
-
+  shrinkNo();
   growYes();
-}
 
-zone.addEventListener("pointermove", e => {
-  const b = noBtn.getBoundingClientRect();
+  if (clickCount >= noMessages.length) {
+    noBtn.style.opacity = "0";
+    noBtn.style.pointerEvents = "none";
 
-  const d = Math.hypot(
-    (b.left + b.width / 2) - e.clientX,
-    (b.top + b.height / 2) - e.clientY
-  );
-
-  if (d < 140) moveNo(e.clientX, e.clientY);
+    setTimeout(() => {
+      noBtn.style.display = "none";
+    }, 250);
+  }
 });
-
-noBtn.addEventListener("click", e => e.preventDefault());
 
 yesBtn.addEventListener("click", () => {
   zone.style.display = "none";
