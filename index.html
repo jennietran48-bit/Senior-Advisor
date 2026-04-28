@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Will you be my Valentine?</title>
+  <title>Will you be my senior advisor?</title>
 
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
@@ -64,6 +64,12 @@
     h1 {
       font-size: clamp(26px, 4vw, 44px);
       margin: 12px 0 18px;
+      transition: all 0.3s ease;
+    }
+
+    .card.active h1 {
+      transform: scale(1.08);
+      color: var(--yes);
     }
 
     .button-zone {
@@ -108,12 +114,31 @@
     .result {
       display: none;
       margin-top: 18px;
+      animation: popIn 0.4s ease;
+    }
+
+    .result h2 {
+      font-size: clamp(28px, 4vw, 42px);
+      margin: 10px 0;
     }
 
     .fireworks {
-      width: min(380px, 90vw);
-      display: block;
+      width: min(420px, 95vw);
+      border-radius: 16px;
       margin: 0 auto;
+      display: block;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
   </style>
 </head>
@@ -122,16 +147,15 @@
 
 <canvas id="confettiCanvas"></canvas>
 
-<main class="card">
+<main class="card" id="card">
 
-  <!-- LOCAL GIF -->
   <img 
     class="art"
     src="mocha-bear-hearts.gif"
     alt="valentine gif"
   />
 
-  <h1>Will You Be My Senior Advisor?</h1>
+  <h1 id="mainText">Will You Be My Senior Advisor?</h1>
 
   <section class="button-zone" id="zone">
     <button id="yesBtn">Yes</button>
@@ -152,6 +176,8 @@
 </main>
 
 <script>
+const card = document.getElementById("card");
+const mainText = document.getElementById("mainText");
 const zone = document.getElementById("zone");
 const yesBtn = document.getElementById("yesBtn");
 const noBtn = document.getElementById("noBtn");
@@ -174,17 +200,20 @@ const confettiInstance = confetti.create(confettiCanvas, {
 
 function fullScreenConfetti() {
   const end = Date.now() + 1500;
+
   (function frame() {
     confettiInstance({
       particleCount: 10,
       spread: 80,
       origin: { x: Math.random(), y: Math.random() * 0.5 }
     });
+
     if (Date.now() < end) requestAnimationFrame(frame);
   })();
 }
 
 let yesScale = 1;
+
 function growYes() {
   yesScale = Math.min(2.2, yesScale + 0.1);
   yesBtn.style.transform = `translateY(-50%) scale(${yesScale})`;
@@ -201,6 +230,7 @@ function moveNo(px, py) {
   let dx = (b.left + b.width / 2) - px;
   let dy = (b.top + b.height / 2) - py;
   let mag = Math.hypot(dx, dy) || 1;
+
   dx /= mag;
   dy /= mag;
 
@@ -219,10 +249,12 @@ function moveNo(px, py) {
 
 zone.addEventListener("pointermove", e => {
   const b = noBtn.getBoundingClientRect();
+
   const d = Math.hypot(
     (b.left + b.width / 2) - e.clientX,
     (b.top + b.height / 2) - e.clientY
   );
+
   if (d < 140) moveNo(e.clientX, e.clientY);
 });
 
@@ -232,6 +264,10 @@ yesBtn.addEventListener("click", () => {
   zone.style.display = "none";
   hint.style.display = "none";
   result.style.display = "block";
+
+  mainText.textContent = "Another Year With The Gang!";
+  card.classList.add("active");
+
   fullScreenConfetti();
 });
 </script>
